@@ -1,0 +1,17 @@
+{
+  "name": "solitairewin",
+  "version": "0.0.0",
+  "description": "You win! Browserify",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": "",
+  "keywords": [
+    "solitaire",
+    "win",
+    "browserify"
+  ],
+  "author": "Sean Fridman",
+  "license": "MIT"
+}
