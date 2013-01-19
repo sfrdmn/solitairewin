@@ -14,7 +14,7 @@ An array of the names of all images to be animated.
 	
 `path`
 
-Path to the folder container the images.
+Path to the folder containing the images.
 
 ### Notes
 
