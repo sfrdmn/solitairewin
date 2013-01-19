@@ -1,6 +1,6 @@
 {
   "name": "solitairewin",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "You win!",
   "main": "index.js",
   "scripts": {
@@ -8,9 +8,11 @@
   },
   "repository": "",
   "keywords": [
+    "browserify",
     "solitaire",
     "win",
-    "browserify"
+    "win95",
+    "win98"
   ],
   "author": "Sean Fridman",
   "license": "MIT"
