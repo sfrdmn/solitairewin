@@ -1,7 +1,7 @@
 {
   "name": "solitairewin",
   "version": "0.0.0",
-  "description": "You win! Browserify",
+  "description": "You win!",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

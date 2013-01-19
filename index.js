@@ -25,16 +25,6 @@
         setTimeout(callback, 1000 / 60);
       };
 
-  var options = {
-    path: 'static/img/',
-    images: [
-      'cool.png',
-      'great.gif',
-      'awesome.jpg'
-    ],
-    fps: 24
-  }
-
   var SolitaireWin = function(options) {
     this.viewport = options.viewport;
     this.$viewport = $(this.viewport);
@@ -43,12 +33,14 @@
     this.images = [];
     this.imageMaxWidth = 0;
     this.imageMaxHeight = 0;
-    this.w = this.$viewport.width();
-    this.h = this.$viewport.height();
+    this.width = this.$viewport.width();
+    this.height = this.$viewport.height();
+    this.fps = options.fps || 60;
+    this.delay = 1000 / this.fps;
     this.isLoaded = false;
     this.isLoading = false;
 
-    this.setupDOM();
+    this.setupViewport();
 
     this.$canvas = this.$viewport.find('canvas');
     this.canvas = this.$canvas[0];
@@ -63,8 +55,12 @@
     }
   };
 
-  SolitaireWin.prototype.setupDOM = function() {
+  SolitaireWin.prototype.setupViewport = function() {
     var canvas = document.createElement('canvas');
+    $(canvas).css({
+      'width': 'auto',
+      'height': 'auto'
+    });
     this.$viewport.addClass('sw-viewport').css({
       'position': 'relative',
       'top': 0,
@@ -75,7 +71,7 @@
   SolitaireWin.prototype.start = function() {
     var that = this;
     if (this.isLoaded) {
-      this.draw();
+      this.startAnimation();
     } else {
       $(this).one('load', function() {
         that.start();
@@ -122,128 +118,156 @@
     }, callback);
   };
 
-  SolitaireWin.prototype.draw = function() {
-    console.log('Draw! :)');
-    // Set up.
-    var canvas = this.canvas;
-    var ctx = this.ctx;
-    var images = this.images;
-    var w = this.w;
-    var h = this.h;
-    var imageMaxWidth = this.imageMaxWidth;
-    var imageMaxHeight = this.imageMaxHeight;
-    var realW = w + this.imageMaxWidth * 2;
-    var realH = h + this.imageMaxHeight;
-    this.$canvas.attr({
-      'width': realW + 'px',
-      'height': realH + 'px'
-    });
-    this.$canvas.css({
-      //'position': 'absolute',
-      //'left': -imageMaxWidth,
-      //'top': -imageMaxHeight
-    });
-
-    // Parameters
-    var vMax = 4;
-    var vMin = 2;
-    var gMax = -.008;
-    var gMin = -.001;
-    var bounceMax = 1.8;
-    var bounceMin = 1.3;
-    var refresh = 4;
-    var initVy = .000001;
-
-    // Initialization
-    var t = 0;
-    var bounce = 0;
-    var x = -99999;
-    var y = 0;
-    var Vx = 0;
-    var Vy = 0;
-    var g = -.002;
-    var card = {};
-    var imageWidth = -1;
-    var imageHeight = -1;
-    //console.log('this', this);
-    ctx.fillStyle = 'red';
-    ctx.fillRect(0, 0, 25, 25);
-    ctx.fillStyle = 'blue';
-    ctx.fillRect(0, 0, 1, 1);
-
-    function update() {
-      // Calculate next stuf to check for offscreen/peak
-      var nextY = y + Vy;
-      var nextVy = Vy + -1*g*t;
-
-      if (x >= realW - imageMaxWidth ||
-          x <= 0 + imageMaxWidth - imageWidth) {
-        bounce = bounceMin + Math.random() * (bounceMax-bounceMin);
-        image = images[randomIntBetween(0, images.length - 1)];
-        imageWidth = image.width;
-        imageHeight = image.height;
-        y = 0 + imageMaxHeight - imageHeight;
-
-        x = Math.random() * w;
-
-        //console.log(x, y);
-
-        nextY = y + Vy;
-        if( x < realW * .2 ) {
-          Vx = vMax - Math.random() * ((vMax-vMin)/2);
-        }
-        else if( x > realW * .8 ) {
-          Vx = -1 * vMax - Math.random() * ((vMax-vMin)/2);
-        }
-        else {
-          Vx = (vMin + Math.random() * (vMax-vMin)) * (Math.random() < .5 ? 1 : -1);
-        }
-        Vy = initVy;
-        t = 0;
-      }
-      else if( nextY > realH - imageMaxHeight - imageHeight) {
-        y = realH - imageMaxHeight - imageHeight;
-        x += Vx;
-        Vy = -1 * Vy / Math.pow(bounce,2);
-      }
-      else if( y === realH - imageMaxHeight - imageHeight) {
-        if( Vy >= 0 ) {
-          Vy = -1 * Vy / 1 * Math.pow(bounce,2);
-        }
-        t = 0;
-        y += Vy;
-        x += Vx;
-      }
-      else if( Vy <= 0 && nextVy >= 0 ) {
-        t = t/bounce;
-        Vy = nextVy;
-        y = nextY;
-        x += Vx;
-      }
-      else {
-        x += Vx;
-        y = nextY;
-        ++t;
-        Vy = nextVy;
-      }
-      x = Math.round(x);
-      y = Math.round(y);
-      ctx.drawImage(image, x, y);
-    }
-
-    this.animate(update);
+  SolitaireWin.prototype.startAnimation = function() {
+    this.setupWorld();
+    this.setupCanvas();
+    this.animate(this.step);
   };
 
-  SolitaireWin.prototype.animate = function(fn) {
-    var that = this;
-    var redraw = bind(fn, this);
+  SolitaireWin.prototype.setupWorld = function() {
+    this.world = new World({
+      minVx: 5,
+      maxVx: 10,
+      minVy: 1,
+      maxVy: 25,
+      images: this.images,
+      width: this.width,
+      height: this.height,
+      marginX: this.imageMaxWidth,
+      marginY: this.imageMaxHeight,
+      bounce: 0.75,
+      gravity: .75
+    });
+  };
 
+  SolitaireWin.prototype.setupCanvas = function() {
+    console.log(this.world);
+    this.$canvas.attr({
+      'width': this.world.realWidth + 'px',
+      'height': this.world.realHeight + 'px'
+    });
+    this.$canvas.css({
+      'position': 'absolute',
+      'left': -this.world.marginX,
+      'top': -this.world.marginY
+    });
+  };
+
+  SolitaireWin.prototype.step = function() {
+    var ctx = this.ctx;
+    this.world.step(function(particle) {
+      ctx.drawImage(particle.image, particle.x, particle.y);
+    });
+  };
+
+  SolitaireWin.prototype.animate = function(step) {
+    var that = this;
     function next() {
-      requestAnimationFrame(redraw);
+      requestAnimationFrame(bind(step, that));
       that.timeoutId = setTimeout(next, that.delay);
     }
-
     next();
+  };
+
+  function World(options) {
+    this.minVx = options.minVx || 1;
+    this.maxVx = options.maxVx || 10;
+    this.minVy = options.minVy || 1;
+    this.maxVy = options.maxVy || 10;
+    this.images = options.images;
+    this.particles = [];
+    this.width = options.width;
+    this.height = options.height;
+    this.marginX = options.marginX;
+    this.marginY = options.marginY;
+    this.realWidth = this.width + this.marginX * 2;
+    this.realHeight = this.height + this.marginY;
+    this.bounce = options.bounce || .75;
+    this.gravity = options.gravity || 0.98;
+
+    this.particles.push(this.getNextParticle());
+  };
+
+  World.prototype.step = function(callback) {
+    var that = this;
+    var hasDied = false;
+    this.particles = $.grep(this.particles, function(particle) {
+      that.stepParticle(particle);
+      if (!that.isDead(particle)) {
+          if (that.isBounce(particle)) {
+            that.bounceParticle(particle);
+          }
+          callback(particle);
+          return true;
+      } else {
+        console.log('deda!');
+        hasDied = true;
+      }
+    });
+    if (hasDied) {
+      this.particles.push(that.getNextParticle());
+    }
+  };
+
+  World.prototype.stepParticle = function(particle) {
+    particle.x += particle.vx;
+    particle.y += particle.vy;
+    particle.vy = particle.vy + this.gravity > this.maxVy ?
+      this.maxVy :
+      particle.vy + this.gravity;
+  };
+
+  World.prototype.isDead = function(particle) {
+    if (particle.x > this.realWidth - this.marginX ||
+        particle.x < this.marginX - particle.width) {
+      return true;
+    }
+  };
+
+  World.prototype.isBounce = function(particle) {
+    if (particle.y > this.realHeight - particle.height) {
+      return true;
+    }
+  };
+
+  World.prototype.bounceParticle = function(particle) {
+    particle.y = this.realHeight - particle.height;
+    particle.vy = -particle.vy * this.bounce;
+  };
+
+  World.prototype.getNextParticle = function() {
+    var image = this.images[randomIntBetween(0, this.images.length - 1)];
+    return new Particle({
+      image: image,
+      vx: this.getRandomVx(),
+      vy: this.getRandomVy(),
+      x: this.getRandomX(),
+      y: this.marginY - image.height
+    });
+  };
+
+  World.prototype.getRandomVx = function() {
+    var sign = Math.random() < 0.5 ? -1 : 1;
+    return sign * randomIntBetween(this.minVx, this.maxVx);
+  };
+
+  World.prototype.getRandomVy = function() {
+    return randomIntBetween(this.minVy, this.maxVy / 4);
+  };
+
+  World.prototype.getRandomX = function() {
+    return randomIntBetween(this.marginX + this.width * .25,
+        this.marginX + this.width * .75);
+  };
+
+  function Particle(options) {
+    this.x = options.x || 0;
+    this.y = options.y || 0;
+    this.vx = options.vx || 0;
+    this.vy = options.vy || 0;
+    this.image = options.image;
+    this.width = this.image.width;
+    this.height = this.image.height;
   };
 
   function randomIntBetween(min, max) {
