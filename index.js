@@ -71,7 +71,7 @@
   SolitaireWin.prototype.start = function() {
     var that = this;
     if (this.isLoaded) {
-      this.startAnimation();
+      this.setup();
     } else {
       $(this).one('load', function() {
         that.start();
@@ -118,13 +118,7 @@
     }, callback);
   };
 
-  SolitaireWin.prototype.startAnimation = function() {
-    this.setupWorld();
-    this.setupCanvas();
-    this.animate(this.step);
-  };
-
-  SolitaireWin.prototype.setupWorld = function() {
+  SolitaireWin.prototype.setup = function() {
     this.world = new World({
       minVx: 5,
       maxVx: 10,
@@ -138,10 +132,11 @@
       bounce: 0.75,
       gravity: .75
     });
+    this.setupCanvas();
+    this.animate(this.step);
   };
 
   SolitaireWin.prototype.setupCanvas = function() {
-    console.log(this.world);
     this.$canvas.attr({
       'width': this.world.realWidth + 'px',
       'height': this.world.realHeight + 'px'
@@ -167,6 +162,11 @@
       that.timeoutId = setTimeout(next, that.delay);
     }
     next();
+//    var next = bind(function() {
+//      step.call(this);
+//      requestAnimationFrame(next);
+//    }, this);
+//    next();
   };
 
   function World(options) {
@@ -185,28 +185,38 @@
     this.bounce = options.bounce || .75;
     this.gravity = options.gravity || 0.98;
 
+    $(this).on('dead', bind(this.onDead, this));
+
+    this.generateParticles();
+  };
+
+  World.prototype.generateParticles = function() {
     this.particles.push(this.getNextParticle());
   };
 
   World.prototype.step = function(callback) {
     var that = this;
-    var hasDied = false;
-    this.particles = $.grep(this.particles, function(particle) {
-      that.stepParticle(particle);
-      if (!that.isDead(particle)) {
-          if (that.isBounce(particle)) {
-            that.bounceParticle(particle);
-          }
-          callback(particle);
-          return true;
-      } else {
-        console.log('deda!');
-        hasDied = true;
-      }
-    });
-    if (hasDied) {
-      this.particles.push(that.getNextParticle());
+    var length = this.particles.length;
+    for (var i = 0; i < length; i++) {
+      (function() {
+        var particle = that.particles[i];
+        that.stepParticle(particle);
+        if (!that.isDead(particle)) {
+            if (that.isBounce(particle)) {
+              that.bounceParticle(particle);
+            }
+            callback(particle);
+        } else {
+          that.particles.splice(i, 1);
+          i--;
+          $(that).triggerHandler('dead');
+        }
+      })();
     }
+  };
+
+  World.prototype.onDead = function(e) {
+    this.particles.push(this.getNextParticle());
   };
 
   World.prototype.stepParticle = function(particle) {

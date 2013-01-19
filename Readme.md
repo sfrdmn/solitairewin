@@ -1,17 +1,16 @@
-![](http://i.imgur.com/6jE2Wh9.gif)
+![](http://i.imgur.com/7p9dH2e.png)
 # For nice victory
 
 ### Options
 
 `viewport`
-	
+
 The container element to which the canvas will be appended. The animation will conform to the size of this element.
 
 `images`
 
 An array of the names of all images to be animated.
 
-	
 `path`
 
 Path to the folder containing the images.
