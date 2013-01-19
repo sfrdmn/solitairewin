@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Sold SolitaireWin!</title>
+  <script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
+  <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/async/1.22/async.min.js"></script>
+  <script type="text/javascript" src="js/solidwin.js"></script>
+  <style type="text/css">
+    html, body, .viewport {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+    }
+    .viewport {
+      overflow: hidden;
+      position: relative;
+      top: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="viewport">
+  </div>
+
+  <script type="text/javascript">
+    var canvas = document.getElementById('doggie');
+
+    var win = new SolitaireWin({
+      viewport: $('.viewport')[0],
+      path: 'img/',
+      images: [
+        'bullet.gif',
+        'ds-title.gif',
+        'gs1.jpg',
+        'ineedpage.jpg',
+        'LupaCapitolina.png',
+        'phone.gif'
+      ]
+    });
+
+    win.start();
+  </script>
+</body>
+</html>
