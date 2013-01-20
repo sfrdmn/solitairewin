@@ -1,6 +1,8 @@
 ![](http://i.imgur.com/7p9dH2e.png)
 # For nice victory
 
+# [View example](http://sfrdmn.github.com/solitairewin/)
+
 ### Options
 
 `viewport`
@@ -24,5 +26,3 @@ Control that FPS, doggie. Defaults to 60.
 Can be used with browserify or just loaded globally. Depends on [jQuery](https://github.com/jquery/jquery) and [async](https://github.com/caolan/async).
 
 There's a `load` method which accepts a callback and loads the images. A `load` event is also triggered on load. Using `start` implicitly calls `load`.
-
-### View the example for usage
