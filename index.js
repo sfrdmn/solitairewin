@@ -57,15 +57,11 @@
 
   SolitaireWin.prototype.setupViewport = function() {
     var canvas = document.createElement('canvas');
-    $(canvas).css({
+    $(canvas).addClass('sw-canvas').css({
       'width': 'auto',
       'height': 'auto'
     });
-    this.$viewport.addClass('sw-viewport').css({
-      'position': 'relative',
-      'top': 0,
-      'overflow': 'hidden'
-    }).append(canvas);
+    this.$viewport.addClass('sw-viewport').append(canvas);
   };
 
   SolitaireWin.prototype.start = function() {
@@ -138,22 +134,50 @@
 
   SolitaireWin.prototype.setupCanvas = function() {
     this.$canvas.attr({
-      'width': this.world.realWidth + 'px',
-      'height': this.world.realHeight + 'px'
-    });
-    this.$canvas.css({
-      'position': 'absolute',
-      'left': -this.world.marginX,
-      'top': -this.world.marginY
+      'width': this.world.width + 'px',
+      'height': this.world.height + 'px'
     });
   };
 
   SolitaireWin.prototype.step = function() {
-    var ctx = this.ctx;
+    var that = this;
     this.world.step(function(particle) {
-      ctx.drawImage(particle.image, particle.x, particle.y, particle.width, particle.height);
-//      ctx.drawImage(particle.image, particle.x, particle.y);
+      var coords = that.getClipCoords(particle);
+      that.ctx.drawImage(coords.image, coords.sx, coords.sy,
+          coords.width, coords.height,
+          coords.dx, coords.dy,
+          coords.width, coords.height);
     });
+  };
+
+  SolitaireWin.prototype.getClipCoords = function(particle) {
+    var world = this.world;
+    var deltaX = world.width - particle.x;
+    var deltaY = world.height - particle.y;
+    var coords = {
+      image: particle.image,
+      sx: 0,
+      sy: 0,
+      dx: particle.x,
+      dy: particle.y,
+      width: particle.width,
+      height: particle.height
+    };
+    if (deltaX < particle.width) {
+      coords.width = deltaX;
+    } else if (deltaX > world.width) {
+      var offsetX = deltaX - world.width;
+      coords.dx = 0;
+      coords.sx = offsetX;
+      coords.width = particle.width - offsetX;
+    }
+    if (deltaY > world.height) {
+      var offsetY = deltaY - world.height;
+      coords.dy = 0;
+      coords.sy = offsetY;
+      coords.height = particle.height - offsetY;
+    }
+    return coords;
   };
 
   SolitaireWin.prototype.animate = function(step) {
@@ -163,11 +187,6 @@
       that.timeoutId = setTimeout(next, that.delay);
     }
     next();
-//    var next = bind(function() {
-//      step.call(this);
-//      requestAnimationFrame(next);
-//    }, this);
-//    next();
   };
 
   function World(options) {
@@ -180,16 +199,11 @@
     this.particles = [];
     this.width = options.width;
     this.height = options.height;
-    this.marginX = options.marginX;
-    this.marginY = options.marginY;
-    this.realWidth = this.width + this.marginX * 2;
-    this.realHeight = this.height + this.marginY;
     this.bounce = options.bounce || .75;
     this.gravity = options.gravity || 0.98;
 
     $(this).on('dead', bind(this.onDead, this));
 
-    this.prerenderImages();
     this.generateParticles();
   };
 
@@ -197,19 +211,19 @@
     this.particles.push(this.getNextParticle());
   };
 
-  World.prototype.prerenderImages = function() {
-    var that = this;
-    $.each(this.images, function(i, image) {
-      var canvas = document.createElement('canvas');
-      $(canvas).attr({
-        'width': image.width,
-        'height': image.height
-      });
-      var ctx = canvas.getContext('2d');
-      ctx.drawImage(image, 0, 0);
-      that.prerendered.push(canvas);
-    });
-  };
+//  World.prototype.prerenderImages = function() {
+//    var that = this;
+//    $.each(this.images, function(i, image) {
+//      var canvas = document.createElement('canvas');
+//      $(canvas).attr({
+//        'width': image.width,
+//        'height': image.height
+//      });
+//      var ctx = canvas.getContext('2d');
+//      ctx.drawImage(image, 0, 0);
+//      that.prerendered.push(canvas);
+//    });
+//  };
 
   World.prototype.step = function(callback) {
     var that = this;
@@ -225,7 +239,7 @@
             callback(particle);
         } else {
           that.particles.splice(i, 1);
-          i--;
+          length--;
           $(that).triggerHandler('dead');
         }
       })();
@@ -245,34 +259,34 @@
   };
 
   World.prototype.isDead = function(particle) {
-    if (particle.x > this.realWidth - this.marginX ||
-        particle.x < this.marginX - particle.width) {
+    if (particle.x > this.width ||
+        particle.x < 0 - particle.width) {
       return true;
     }
   };
 
   World.prototype.isBounce = function(particle) {
-    if (particle.y > this.realHeight - particle.height) {
+    if (particle.y > this.height - particle.height) {
       return true;
     }
   };
 
   World.prototype.bounceParticle = function(particle) {
-    particle.y = this.realHeight - particle.height;
+    particle.y = this.height - particle.height;
     particle.vy = -particle.vy * this.bounce;
   };
 
   World.prototype.getNextParticle = function() {
-    //var image = this.images[randomIntBetween(0, this.images.length - 1)];
-    var image = this.prerendered[
-      randomIntBetween(0, this.prerendered.length - 1)
-    ];
+    var image = this.images[randomIntBetween(0, this.images.length - 1)];
+//    var image = this.prerendered[
+//      randomIntBetween(0, this.prerendered.length - 1)
+//    ];
     return new Particle({
       image: image,
       vx: this.getRandomVx(),
       vy: this.getRandomVy(),
       x: this.getRandomX(),
-      y: this.marginY - image.height
+      y: -image.height
     });
   };
 
@@ -286,8 +300,7 @@
   };
 
   World.prototype.getRandomX = function() {
-    return randomIntBetween(this.marginX + this.width * .25,
-        this.marginX + this.width * .75);
+    return randomIntBetween(this.width * .25, this.width * .75);
   };
 
   function Particle(options) {
