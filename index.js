@@ -151,7 +151,8 @@
   SolitaireWin.prototype.step = function() {
     var ctx = this.ctx;
     this.world.step(function(particle) {
-      ctx.drawImage(particle.image, particle.x, particle.y);
+      ctx.drawImage(particle.image, particle.x, particle.y, particle.width, particle.height);
+//      ctx.drawImage(particle.image, particle.x, particle.y);
     });
   };
 
@@ -175,6 +176,7 @@
     this.minVy = options.minVy || 1;
     this.maxVy = options.maxVy || 10;
     this.images = options.images;
+    this.prerendered = [];
     this.particles = [];
     this.width = options.width;
     this.height = options.height;
@@ -187,11 +189,26 @@
 
     $(this).on('dead', bind(this.onDead, this));
 
+    this.prerenderImages();
     this.generateParticles();
   };
 
   World.prototype.generateParticles = function() {
     this.particles.push(this.getNextParticle());
+  };
+
+  World.prototype.prerenderImages = function() {
+    var that = this;
+    $.each(this.images, function(i, image) {
+      var canvas = document.createElement('canvas');
+      $(canvas).attr({
+        'width': image.width,
+        'height': image.height
+      });
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(image, 0, 0);
+      that.prerendered.push(canvas);
+    });
   };
 
   World.prototype.step = function(callback) {
@@ -246,7 +263,10 @@
   };
 
   World.prototype.getNextParticle = function() {
-    var image = this.images[randomIntBetween(0, this.images.length - 1)];
+    //var image = this.images[randomIntBetween(0, this.images.length - 1)];
+    var image = this.prerendered[
+      randomIntBetween(0, this.prerendered.length - 1)
+    ];
     return new Particle({
       image: image,
       vx: this.getRandomVx(),

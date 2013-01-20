@@ -15,6 +15,10 @@ An array of the names of all images to be animated.
 
 Path to the folder containing the images.
 
+`fps`
+
+Control that FPS, doggie. Defaults to 60.
+
 ### Notes
 
 Can be used with browserify or just loaded globally. Depends on [jQuery](https://github.com/jquery/jquery) and [async](https://github.com/caolan/async).
