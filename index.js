@@ -40,10 +40,7 @@
     this.n = options.n || 1;
     this.isLoaded = false;
     this.isLoading = false;
-
-    if (options.resize) {
-      $(window).on('resize', bind(this.onResize, this));
-    }
+    this.resize = options.resize || false;
   };
 
   SolitaireWin.prototype.resolvePath = function(path) {
@@ -122,6 +119,9 @@
     this.$canvas = this.$viewport.find('canvas');
     this.canvas = this.$canvas[0];
     this.ctx = this.canvas.getContext('2d');
+    if (this.resize) {
+      $(window).on('resize', bind(this.onResize, this));
+    }
   };
 
   SolitaireWin.prototype.setupAndStart = function() {
