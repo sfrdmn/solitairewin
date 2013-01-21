@@ -195,7 +195,6 @@
   SolitaireWin.prototype.onResize = function(e) {
     var width = this.$viewport.width();
     var height = this.$viewport.height();
-    if (width != this.width || height != this.height) {
     this.setDimensions(width, height);
     this.world.setDimensions(width, height);
   };
