@@ -1,14 +1,14 @@
 {
   "name": "solitairewin",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "You win!",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "jquery-browserify": "1.*",
-    "async": "0.1.*"
+    "jquery-browserify": "1.x",
+    "async": "0.1.x"
   },
   "repository": "",
   "keywords": [
