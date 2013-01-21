@@ -41,11 +41,9 @@
     this.isLoaded = false;
     this.isLoading = false;
 
-    this.setupViewport();
-
-    this.$canvas = this.$viewport.find('canvas');
-    this.canvas = this.$canvas[0];
-    this.ctx = this.canvas.getContext('2d');
+    if (options.resize) {
+      $(window).on('resize', bind(this.onResize, this));
+    }
   };
 
   SolitaireWin.prototype.resolvePath = function(path) {
@@ -56,19 +54,11 @@
     }
   };
 
-  SolitaireWin.prototype.setupViewport = function() {
-    var canvas = document.createElement('canvas');
-    $(canvas).addClass('sw-canvas').css({
-      'width': 'auto',
-      'height': 'auto'
-    });
-    this.$viewport.addClass('sw-viewport').append(canvas);
-  };
 
   SolitaireWin.prototype.start = function() {
     var that = this;
     if (this.isLoaded) {
-      this.setup();
+      this.setupAndStart();
     } else {
       $(this).one('load', function() {
         that.start();
@@ -124,21 +114,32 @@
       images: this.images,
       width: this.width,
       height: this.height,
-      marginX: this.imageMaxWidth,
-      marginY: this.imageMaxHeight,
       n: this.n,
       bounce: 0.75,
       gravity: .75
     });
-    this.setupCanvas();
-    this.animate(this.step);
+    this.setupDOM();
+    this.$canvas = this.$viewport.find('canvas');
+    this.canvas = this.$canvas[0];
+    this.ctx = this.canvas.getContext('2d');
   };
 
-  SolitaireWin.prototype.setupCanvas = function() {
-    this.$canvas.attr({
-      'width': this.world.width + 'px',
-      'height': this.world.height + 'px'
+  SolitaireWin.prototype.setupAndStart = function() {
+    this.setup();
+    this.animate(this.step);
+    this.world.start();
+  };
+
+  SolitaireWin.prototype.setupDOM = function() {
+    var canvas = document.createElement('canvas');
+    $(canvas).addClass('sw-canvas').css({
+      'width': 'auto',
+      'height': 'auto'
+    }).attr({
+      'width': this.width,
+      'height': this.height
     });
+    this.$viewport.addClass('sw-viewport').append(canvas);
   };
 
   SolitaireWin.prototype.step = function() {
@@ -191,6 +192,23 @@
     next();
   };
 
+  SolitaireWin.prototype.onResize = function(e) {
+    var width = this.$viewport.width();
+    var height = this.$viewport.height();
+    if (width != this.width || height != this.height) {
+    this.setDimensions(width, height);
+    this.world.setDimensions(width, height);
+  };
+
+  SolitaireWin.prototype.setDimensions = function(width, height) {
+    this.width = width;
+    this.height = height;
+    this.$canvas.attr({
+      'width': width,
+      'height': height
+    });
+  };
+
   function World(options) {
     this.minVx = options.minVx || 1;
     this.maxVx = options.maxVx || 10;
@@ -207,8 +225,6 @@
     this.frequency = options.frequency || 1000;
 
     $(this).on('dead', bind(this.onDead, this));
-
-    this.start();
   };
 
   World.prototype.start = function() {
@@ -219,6 +235,11 @@
 
   World.prototype.generateParticle = function() {
     this.particles.push(this.getNextParticle());
+  };
+
+  World.prototype.setDimensions = function(width, height) {
+    this.width = width;
+    this.height = height;
   };
 
 //  World.prototype.prerenderImages = function() {

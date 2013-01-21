@@ -25,6 +25,11 @@ Control that FPS, doggie. Defaults to 60.
 
 Number of images onscreen at a time. Defaults to 1.
 
+`resize`
+
+Boolean indicating whether to resize canvas on window resize.
+Basically only for when viewport resizes with window.
+
 ### Notes
 
 Can be used with browserify or just loaded globally. Depends on [jQuery](https://github.com/jquery/jquery) and [async](https://github.com/caolan/async).
