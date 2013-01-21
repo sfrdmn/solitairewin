@@ -37,6 +37,7 @@
     this.height = this.$viewport.height();
     this.fps = options.fps || 60;
     this.delay = 1000 / this.fps;
+    this.n = options.n || 1;
     this.isLoaded = false;
     this.isLoading = false;
 
@@ -125,6 +126,7 @@
       height: this.height,
       marginX: this.imageMaxWidth,
       marginY: this.imageMaxHeight,
+      n: this.n,
       bounce: 0.75,
       gravity: .75
     });
@@ -201,13 +203,21 @@
     this.height = options.height;
     this.bounce = options.bounce || .75;
     this.gravity = options.gravity || 0.98;
+    this.n = options.n || 1;
+    this.frequency = options.frequency || 1000;
 
     $(this).on('dead', bind(this.onDead, this));
 
-    this.generateParticles();
+    this.start();
   };
 
-  World.prototype.generateParticles = function() {
+  World.prototype.start = function() {
+    for (var i = 0; i < this.n; i++) {
+      this.generateParticle();
+    };
+  };
+
+  World.prototype.generateParticle = function() {
     this.particles.push(this.getNextParticle());
   };
 
@@ -239,7 +249,7 @@
             callback(particle);
         } else {
           that.particles.splice(i, 1);
-          length--;
+          i--; length--;
           $(that).triggerHandler('dead');
         }
       })();
@@ -247,7 +257,7 @@
   };
 
   World.prototype.onDead = function(e) {
-    this.particles.push(this.getNextParticle());
+    this.generateParticle();
   };
 
   World.prototype.stepParticle = function(particle) {

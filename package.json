@@ -1,0 +1,24 @@
+{
+  "name": "solitairewin",
+  "version": "0.0.2",
+  "description": "You win!",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "jquery-browserify": "1.*",
+    "async": "0.1.*"
+  },
+  "repository": "",
+  "keywords": [
+    "canvas",
+    "browserify",
+    "solitaire",
+    "win",
+    "win95",
+    "win98"
+  ],
+  "author": "Sean Fridman",
+  "license": "MIT"
+}
