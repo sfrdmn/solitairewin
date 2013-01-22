@@ -42,7 +42,7 @@
     this.options.fps = options.fps || 60;
     this.options.delay = 1000 / this.options.fps;
     this.options.n = options.n || 1;
-    this.options.resize = options.resize || false;
+    this.options.resize = options.resize;
   };
 
   SolitaireWin.prototype.resolvePath = function(path) {
@@ -122,7 +122,7 @@
     this.$canvas = this.$viewport.find('canvas');
     this.canvas = this.$canvas[0];
     this.ctx = this.canvas.getContext('2d');
-    if (this.resize) {
+    if (this.options.resize) {
       $(window).on('resize', bind(this.onResize, this));
     }
   };
