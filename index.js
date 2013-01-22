@@ -35,12 +35,14 @@
     this.imageMaxHeight = 0;
     this.width = this.$viewport.width();
     this.height = this.$viewport.height();
-    this.fps = options.fps || 60;
-    this.delay = 1000 / this.fps;
-    this.n = options.n || 1;
     this.isLoaded = false;
     this.isLoading = false;
-    this.resize = options.resize || false;
+
+    this.options = options;
+    this.options.fps = options.fps || 60;
+    this.options.delay = 1000 / this.options.fps;
+    this.options.n = options.n || 1;
+    this.options.resize = options.resize || false;
   };
 
   SolitaireWin.prototype.resolvePath = function(path) {
@@ -104,16 +106,17 @@
 
   SolitaireWin.prototype.setup = function() {
     this.world = new World({
-      minVx: 5,
-      maxVx: 10,
-      minVy: 1,
-      maxVy: 25,
+      minVx: this.options.minVx || 5,
+      maxVx: this.options.maxVx || 10,
+      minVy: this.options.minVy || 1,
+      maxVy: this.options.maxVy || 25,
       images: this.images,
       width: this.width,
       height: this.height,
-      n: this.n,
-      bounce: 0.75,
-      gravity: .75
+      n: this.options.n,
+      bounce: this.options.bounce || 0.75,
+      gravity: this.options.gravity || 0.75,
+      spawnArea: this.options.spawnArea
     });
     this.setupDOM();
     this.$canvas = this.$viewport.find('canvas');
@@ -187,7 +190,7 @@
     var that = this;
     function next() {
       requestAnimationFrame(bind(step, that));
-      that.timeoutId = setTimeout(next, that.delay);
+      that.timeoutId = setTimeout(next, that.options.delay);
     }
     next();
   };
@@ -222,6 +225,7 @@
     this.gravity = options.gravity || 0.98;
     this.n = options.n || 1;
     this.frequency = options.frequency || 1000;
+    this.spawnArea = options.spawnArea || 0.8;
 
     $(this).on('dead', bind(this.onDead, this));
   };
@@ -330,7 +334,8 @@
   };
 
   World.prototype.getRandomX = function() {
-    return randomIntBetween(this.width * .25, this.width * .75);
+    var margin = ((1 - this.spawnArea) * this.width) / 2;
+    return randomIntBetween(margin, this.width - margin);
   };
 
   function Particle(options) {
