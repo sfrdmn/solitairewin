@@ -39,8 +39,6 @@
     this.isLoading = false;
 
     this.options = options;
-    this.options.fps = options.fps || 60;
-    this.options.delay = 1000 / this.options.fps;
     this.options.n = options.n || 1;
     this.options.resize = options.resize;
   };
@@ -188,11 +186,11 @@
 
   SolitaireWin.prototype.animate = function(step) {
     var that = this;
-    function next() {
-      requestAnimationFrame(bind(step, that));
-      that.timeoutId = setTimeout(next, that.options.delay);
+    function keyframe() {
+      that.step();
+      requestAnimationFrame(keyframe);
     }
-    next();
+    keyframe();
   };
 
   SolitaireWin.prototype.onResize = function(e) {
