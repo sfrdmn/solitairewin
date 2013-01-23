@@ -17,10 +17,6 @@ An array of the names of all images to be animated.
 
 Path to the folder containing the images.
 
-`fps`
-
-Control that FPS, doggie. Defaults to 60.
-
 `n`
 
 Number of images onscreen at a time. Defaults to 1.
