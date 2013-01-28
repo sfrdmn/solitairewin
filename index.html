@@ -3,8 +3,6 @@
 <head>
   <meta charset="utf-8">
   <title>: )</title>
-  <script type="text/javascript" src="js/jquery.min.js"></script>
-  <script type="text/javascript" src="js/async.min.js"></script>
   <script type="text/javascript" src="index.js"></script>
   <link rel="stylesheet" type="text/css" href="css/ribbon.css">
   <style type="text/css">
@@ -27,7 +25,7 @@
 
   <script type="text/javascript">
     var win = new SolitaireWin({
-      viewport: $('.viewport')[0],
+      viewport: document.querySelector('.viewport'),
       path: 'img/',
       images: [
         'dither.png',

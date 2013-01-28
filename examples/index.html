@@ -3,8 +3,6 @@
 <head>
   <meta charset="utf-8">
   <title>For nice victory!</title>
-  <script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
-  <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/async/1.22/async.min.js"></script>
   <script type="text/javascript" src="js/solitairewin.js"></script>
   <style type="text/css">
     html, body, .viewport {
@@ -29,7 +27,7 @@
 
   <script type="text/javascript">
     var win = new SolitaireWin({
-      viewport: $('.viewport')[0],
+      viewport: document.querySelector('.viewport'),
       path: 'img/',
       images: [
         'dither.png',
@@ -43,7 +41,9 @@
       resize: true
     });
 
-    win.start();
+    win.load(function() {
+      win.start();
+    });
   </script>
 </body>
 </html>
