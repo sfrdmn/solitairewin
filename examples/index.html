@@ -43,7 +43,9 @@
       resize: true
     });
 
-    win.start();
+    win.load(function() {
+      win.start();
+    });
   </script>
 </body>
 </html>

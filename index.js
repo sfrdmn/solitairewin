@@ -16,6 +16,8 @@
   }
 
   var $ = jQuery;
+  var addEventListener = document.addEventListener;
+  var dispatchEvent = document.dispatchEvent;
   var requestAnimationFrame = window.requestAnimationFrame ||
       window.webkitRequestAnimationFrame ||
       window.mozRequestAnimationFrame ||
@@ -27,14 +29,13 @@
 
   var SolitaireWin = function(options) {
     this.viewport = options.viewport;
-    this.$viewport = $(this.viewport);
     this.path = this.resolvePath(options.path);
     this.filenames = options.images || [];
     this.images = [];
     this.imageMaxWidth = 0;
     this.imageMaxHeight = 0;
-    this.width = this.$viewport.width();
-    this.height = this.$viewport.height();
+    this.width = this.viewport.clientWidth;
+    this.height = this.viewport.clientHeight;
     this.isLoaded = false;
     this.isLoading = false;
 
@@ -42,6 +43,7 @@
     this.options.n = options.n || 1;
     this.options.resize = options.resize;
   };
+  SolitaireWin.prototype = new EventEmitter();
 
   SolitaireWin.prototype.resolvePath = function(path) {
     if (path) {
@@ -57,7 +59,7 @@
     if (this.isLoaded) {
       this.setupAndStart();
     } else {
-      $(this).one('load', function() {
+      this.on('load', function() {
         that.start();
       });
       if (!this.isLoading) {
@@ -70,36 +72,45 @@
     callback = callback || function() {};
     var that = this;
     this.isLoading = true;
-    this.loadImages(function(err) {
-      if (err) {
-        callback(err);
-      } else {
-        that.isLoading = false;
-        that.isLoaded = true;
-        $(that).triggerHandler('load');
-        callback();
-      }
+    this.loadImages(function() {
+      that.isLoading = false;
+      that.isLoaded = true;
+      that.trigger('load');
+      callback();
     });
   };
 
+  // async loading
   SolitaireWin.prototype.loadImages = function(callback) {
     var that = this;
-    async.forEach(this.filenames, function(filename, callback) {
-      var image = new Image();
-      image.onload = function() {
-        that.imageMaxWidth = Math.max(that.imageMaxWidth, image.width);
-        that.imageMaxHeight = Math.max(that.imageMaxWidth, image.height);
+    var n = this.filenames.length;
+
+    for (var i = 0; i < this.filenames.length; i++) {
+      (function(i) {
+        var filename = that.filenames[i];
+        var image = new Image();
+        image.onload = function() {
+          that.imageMaxWidth = Math.max(that.imageMaxWidth, image.width);
+          that.imageMaxHeight = Math.max(that.imageMaxWidth, image.height);
+          next();
+        };
+        image.onerror = function() {
+          var index = that.images.indexOf(image);
+          that.images = that.images.splice(index, 1);
+          console.warn('Could not load image.', image);
+          next();
+        };
+        image.src = that.path + filename;
+        that.images.push(image);
+      })(i);
+    }
+
+    function next() {
+      n--;
+      if (n === 0) {
         callback();
-      };
-      image.onerror = function() {
-        var i = that.images.indexOf(image);
-        that.images = that.images.splice(i, 1);
-        console.warn('Could not load image.', image);
-        callback();
-      };
-      image.src = that.path + filename;
-      that.images.push(image);
-    }, callback);
+      }
+    }
   };
 
   SolitaireWin.prototype.setup = function() {
@@ -117,11 +128,11 @@
       spawnArea: this.options.spawnArea
     });
     this.setupDOM();
-    this.$canvas = this.$viewport.find('canvas');
-    this.canvas = this.$canvas[0];
+    this.canvas = document.querySelector('.sw-viewport .sw-canvas');
     this.ctx = this.canvas.getContext('2d');
     if (this.options.resize) {
-      $(window).on('resize', bind(this.onResize, this));
+      window.addEventListener('resize',
+          bind(this.onResize, this));
     }
   };
 
@@ -133,14 +144,13 @@
 
   SolitaireWin.prototype.setupDOM = function() {
     var canvas = document.createElement('canvas');
-    $(canvas).addClass('sw-canvas').css({
-      'width': 'auto',
-      'height': 'auto'
-    }).attr({
-      'width': this.width,
-      'height': this.height
-    });
-    this.$viewport.addClass('sw-viewport').append(canvas);
+    canvas.className += ' sw-canvas';
+    canvas.style.width = 'auto';
+    canvas.style.height = 'auto';
+    canvas.setAttribute('width', this.width);
+    canvas.setAttribute('height', this.height);
+    this.viewport.className += ' sw-viewport';
+    this.viewport.appendChild(canvas);
   };
 
   SolitaireWin.prototype.step = function() {
@@ -194,8 +204,8 @@
   };
 
   SolitaireWin.prototype.onResize = function(e) {
-    var width = this.$viewport.width();
-    var height = this.$viewport.height();
+    var width = this.viewport.clientWidth;
+    var height = this.viewport.clientHeight;
     this.setDimensions(width, height);
     this.world.setDimensions(width, height);
   };
@@ -203,10 +213,8 @@
   SolitaireWin.prototype.setDimensions = function(width, height) {
     this.width = width;
     this.height = height;
-    this.$canvas.attr({
-      'width': width,
-      'height': height
-    });
+    this.canvas.setAttribute('width', width);
+    this.canvas.setAttribute('height', height);
   };
 
   function World(options) {
@@ -215,7 +223,7 @@
     this.minVy = options.minVy || 1;
     this.maxVy = options.maxVy || 10;
     this.images = options.images;
-    this.prerendered = [];
+    //this.prerendered = [];
     this.particles = [];
     this.width = options.width;
     this.height = options.height;
@@ -225,8 +233,9 @@
     this.frequency = options.frequency || 1000;
     this.spawnArea = options.spawnArea || 0.8;
 
-    $(this).on('dead', bind(this.onDead, this));
+    this.on('dead', bind(this.onDead, this));
   };
+  World.prototype = new EventEmitter();
 
   World.prototype.start = function() {
     for (var i = 0; i < this.n; i++) {
@@ -272,7 +281,7 @@
         } else {
           that.particles.splice(i, 1);
           i--; length--;
-          $(that).triggerHandler('dead');
+          that.trigger('dead');
         }
       })();
     }
@@ -344,6 +353,27 @@
     this.image = options.image;
     this.width = this.image.width;
     this.height = this.image.height;
+  };
+
+  function EventEmitter() {};
+
+  EventEmitter.prototype.listeners = {};
+
+  EventEmitter.prototype.on = function(eventName, listener) {
+    if (!this.listeners[eventName]) {
+      this.listeners[eventName] = [listener];
+    } else {
+      this.listeners[eventName].push(listener);
+    }
+  };
+
+  EventEmitter.prototype.trigger = function(eventName) {
+    var listeners = this.listeners[eventName];
+    if (listeners) {
+      for (var i = 0; i < listeners.length; i++) {
+        listeners[i]();
+      }
+    }
   };
 
   function randomIntBetween(min, max) {
