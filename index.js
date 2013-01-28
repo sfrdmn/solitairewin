@@ -8,16 +8,6 @@
     }
 })(this, function() {
 
-  if (typeof jQuery === 'undefined') {
-   jQuery = require('jquery-browserify');
-  }
-  if (typeof async === 'undefined') {
-   async = require('async');
-  }
-
-  var $ = jQuery;
-  var addEventListener = document.addEventListener;
-  var dispatchEvent = document.dispatchEvent;
   var requestAnimationFrame = window.requestAnimationFrame ||
       window.webkitRequestAnimationFrame ||
       window.mozRequestAnimationFrame ||
