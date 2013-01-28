@@ -40,6 +40,4 @@ Basically only for when viewport resizes with window.
 
 ### Notes
 
-Can be used with browserify or just loaded globally. Depends on [jQuery](https://github.com/jquery/jquery) and [async](https://github.com/caolan/async).
-
 There's a `load` method which accepts a callback and loads the images. A `load` event is also triggered on load. Using `start` implicitly calls `load`.
