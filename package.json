@@ -1,6 +1,6 @@
 {
   "name": "solitairewin",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "You win!",
   "main": "index.js",
   "scripts": {
