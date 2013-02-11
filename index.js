@@ -17,6 +17,11 @@
         setTimeout(callback, 1000 / 60);
       };
 
+  var setImmediate = window.setImmediate ||
+      function(fn) {
+        setTimeout(fn, 0);
+      };
+
   var SolitaireWin = function(options) {
     this.viewport = options.viewport;
     this.path = this.resolvePath(options.path);
@@ -65,7 +70,7 @@
     this.loadImages(function() {
       that.isLoading = false;
       that.isLoaded = true;
-      that.trigger('load');
+      that.emit('load');
       callback();
     });
   };
@@ -98,7 +103,7 @@
     function next() {
       n--;
       if (n === 0) {
-        callback();
+        setImmediate(callback);
       }
     }
   };
@@ -135,8 +140,6 @@
   SolitaireWin.prototype.setupDOM = function() {
     var canvas = document.createElement('canvas');
     canvas.className += ' sw-canvas';
-    canvas.style.width = 'auto';
-    canvas.style.height = 'auto';
     canvas.setAttribute('width', this.width);
     canvas.setAttribute('height', this.height);
     this.viewport.className += ' sw-viewport';
@@ -271,7 +274,7 @@
         } else {
           that.particles.splice(i, 1);
           i--; length--;
-          that.trigger('dead');
+          that.emit('dead');
         }
       })();
     }
@@ -357,11 +360,11 @@
     }
   };
 
-  EventEmitter.prototype.trigger = function(eventName) {
+  EventEmitter.prototype.emit = function(eventName) {
     var listeners = this.listeners[eventName];
     if (listeners) {
       for (var i = 0; i < listeners.length; i++) {
-        listeners[i]();
+        setImmediate(listeners[i]);
       }
     }
   };
