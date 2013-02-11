@@ -140,8 +140,6 @@
   SolitaireWin.prototype.setupDOM = function() {
     var canvas = document.createElement('canvas');
     canvas.className += ' sw-canvas';
-    canvas.style.width = 'auto';
-    canvas.style.height = 'auto';
     canvas.setAttribute('width', this.width);
     canvas.setAttribute('height', this.height);
     this.viewport.className += ' sw-viewport';
